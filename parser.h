@@ -17,4 +17,5 @@ void clear_parser();
 /* Clears and deallocates the parser */
 void delete_parser();
 
+char *next_token(sh_parser_t);
 #endif
