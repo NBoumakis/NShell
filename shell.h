@@ -5,5 +5,6 @@
 
 /* Returns a pointer to a string containing the prompt */
 char *prompt_string();
+
 void execute(sh_parser_t);
 #endif
