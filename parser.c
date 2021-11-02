@@ -1,4 +1,6 @@
 #include "parser.h"
+#include <ctype.h>
+#include <string.h>
 
 struct sh_parser {
     char **tokens;       /* Hold each token as a string */
@@ -16,4 +18,88 @@ sh_parser_t new_parser() {
     }
 
     return parser_new;
+}
+
+static int is_separator(char input) {
+    if (input == '|' || input == '<' || input == '>' || input == ';') {
+        return 1;
+    }
+
+    return 0;
+}
+
+static int count_tokens(char *input, size_t input_length) {
+    int count = 0;
+    int i;
+
+    for (i = 0; i < input_length; i++) {
+        while (isspace(input[i])) {
+            i++;
+        }
+
+        if (!is_separator(input[i])) {
+            while (i < input_length && !is_separator(input[i]))
+                i++;
+
+            count++;
+        }
+        if (is_separator(input[i])) {
+            if (i + 1 < input_length && input[i] == '>' && input[i + 1] == '>') {
+                i++;
+            }
+            count++;
+        }
+    }
+
+    return count;
+}
+
+void input_parse(sh_parser_t parser, char *input, size_t input_length) {
+    int count = 0;
+    char **token_arr;
+    char *input_tmp = input;
+    size_t i = 0, token_size, token_start, token_end;
+
+    count = count_tokens(input, input_length);
+    parser->token_count = count;
+    parser->cur_token_index = 0;
+
+    if (count == 0) {
+        parser->tokens = NULL;
+
+        return;
+    }
+
+    token_arr = malloc(sizeof(char *) * count);
+
+    token_start = 0;
+    for (i = 0; i < count; i++) {
+        while (isspace(input[token_start]))
+            token_start++;
+
+        token_end = token_start;
+
+        if (!is_separator(input[token_start])) {
+            while (token_end < input_length && !is_separator(input[token_end]))
+                token_end++;
+
+            while (isspace(input[--token_end]))
+                ;
+        } else {
+            if (token_start + 1 < input_length && input[token_start] == '>' &&
+                input[token_start + 1] == '>') {
+                token_end++;
+            }
+        }
+
+        token_size = token_end - token_start + 1;
+        token_arr[i] = malloc((token_size + 1));
+
+        strncpy(token_arr[i], &input[token_start], token_size);
+        token_arr[i][token_size] = '\0';
+
+        token_start = token_end + 1;
+    }
+
+    parser->tokens = token_arr;
 }

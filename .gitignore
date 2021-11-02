@@ -1,2 +1,5 @@
 hy345-linux.img
 hy345-linux.img.bck
+*.out
+*.o
+.vscode
