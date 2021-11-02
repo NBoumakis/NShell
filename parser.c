@@ -123,3 +123,8 @@ void delete_parser(sh_parser_t parser) {
     clear_parser(parser);
     free(parser);
 }
+
+char *next_token(sh_parser_t parser) {
+    parser->cur_token_index++;
+    return parser->tokens[parser->cur_token_index];
+}
