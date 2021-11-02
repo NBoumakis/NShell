@@ -103,3 +103,23 @@ void input_parse(sh_parser_t parser, char *input, size_t input_length) {
 
     parser->tokens = token_arr;
 }
+
+void clear_parser(sh_parser_t parser) {
+    int i;
+
+    for (i = 0; i < parser->token_count; i++) {
+        free(parser->tokens[i]);
+        parser->tokens[i] = NULL;
+    }
+
+    free(parser->tokens);
+    parser->tokens = NULL;
+
+    parser->token_count = 0;
+    parser->cur_token_index = 0;
+}
+
+void delete_parser(sh_parser_t parser) {
+    clear_parser(parser);
+    free(parser);
+}
