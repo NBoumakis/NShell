@@ -126,5 +126,19 @@ void delete_parser(sh_parser_t parser) {
 
 char *next_token(sh_parser_t parser) {
     parser->cur_token_index++;
+    return current_token(parser);
+}
+
+char *previous_token(sh_parser_t parser) {
+    parser->cur_token_index--;
+    return current_token(parser);
+}
+
+char *current_token(sh_parser_t parser) {
+    if (parser->cur_token_index < 0 ||
+        parser->cur_token_index >= parser->token_count) {
+        return NULL;
+    }
+
     return parser->tokens[parser->cur_token_index];
 }
