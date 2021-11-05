@@ -8,6 +8,8 @@ struct sh_parser {
     int token_count;     /* Hold the total number of tokens */
 };
 
+enum parser_states { TEXT, MULTIPLE, PIPE, REDIR_IN, REDIR_OUT, WHITESPACE };
+
 sh_parser_t new_parser() {
     sh_parser_t parser_new = malloc(sizeof(struct sh_parser));
 
@@ -28,27 +30,76 @@ static int is_separator(char input) {
     return 0;
 }
 
+enum parser_states next_state(char c) {
+    if (c == ';') {
+        return MULTIPLE;
+    } else if (isspace(c)) {
+        return WHITESPACE;
+    } else if (c == '|') {
+        return PIPE;
+    } else if (c == '<') {
+        return REDIR_IN;
+    } else if (c == '>') {
+        return REDIR_OUT;
+    } else {
+        return TEXT;
+    }
+}
+
+enum parser_states action_text(char c, int *count) {
+    enum parser_states new_state = next_state(c);
+
+    if (new_state != TEXT || c == '\0')
+        (*count)++;
+
+    return new_state;
+}
+enum parser_states action_multiple(char c, int *count) {
+    (*count)++;
+
+    return next_state(c);
+}
+enum parser_states action_pipe(char c, int *count) {
+    (*count)++;
+
+    return next_state(c);
+}
+enum parser_states action_redir_in(char c, int *count) {
+    (*count)++;
+
+    return next_state(c);
+}
+enum parser_states action_redir_out(char c, int *count) {
+    if (c == '>')
+        return REDIR_OUT;
+    else {
+        (*count)++;
+        return next_state(c);
+    }
+}
+
+enum parser_states action_whitespace(char c, int *count) { return next_state(c); }
+
 static int count_tokens(char *input, size_t input_length) {
     int count = 0;
-    int i;
 
-    for (i = 0; i < input_length; i++) {
-        while (isspace(input[i])) {
-            i++;
-        }
+    enum parser_states (*actions[6])(char, int *) = {
+        action_text,     action_multiple,  action_pipe,
+        action_redir_in, action_redir_out, action_whitespace};
+    enum parser_states state;
 
-        if (!is_separator(input[i])) {
-            while (i < input_length && !is_separator(input[i]))
-                i++;
+    int i = 0;
 
-            count++;
-        }
-        if (is_separator(input[i])) {
-            if (i + 1 < input_length && input[i] == '>' && input[i + 1] == '>') {
-                i++;
-            }
-            count++;
-        }
+    /* Only \0 is present in the input */
+    if (input_length == 1) {
+        return 0;
+    }
+
+    state = next_state(input[0]);
+
+    while (i < input_length) {
+        state = actions[state](input[i], &count);
+        i++;
     }
 
     return count;
@@ -79,12 +130,16 @@ void input_parse(sh_parser_t parser, char *input, size_t input_length) {
 
         token_end = token_start;
 
-        if (!is_separator(input[token_start])) {
-            while (token_end < input_length && !is_separator(input[token_end]))
+        if (!is_separator(
+                input[token_start])) { /* The current token is not a separator, look
+                                          until the first or a space */
+            while (token_end < input_length && !is_separator(input[token_end]) &&
+                   !isspace(input[token_end]))
                 token_end++;
 
-            while (isspace(input[--token_end]))
-                ;
+            /* Move the end back by one so token_end points to the last character of
+             * the token*/
+            token_end--;
         } else {
             if (token_start + 1 < input_length && input[token_start] == '>' &&
                 input[token_start + 1] == '>') {
@@ -93,14 +148,13 @@ void input_parse(sh_parser_t parser, char *input, size_t input_length) {
         }
 
         token_size = token_end - token_start + 1;
-        token_arr[i] = malloc((token_size + 1));
+        token_arr[i] = malloc((token_size + 1) * sizeof(char));
 
         strncpy(token_arr[i], &input[token_start], token_size);
         token_arr[i][token_size] = '\0';
 
         token_start = token_end + 1;
     }
-
     parser->tokens = token_arr;
 }
 
