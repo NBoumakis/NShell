@@ -1,6 +1,8 @@
 #include "shell.h"
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -59,8 +61,6 @@ static char **reconstruct_command(sh_parser_t parser) {
         command[i] = next_token(parser);
     }
 
-    previous_token(parser);
-
     return command;
 }
 
@@ -68,6 +68,11 @@ void execute(sh_parser_t parser) {
     char *token = current_token(parser);
     char **command;
     pid_t cpid;
+    int redir_in = 0, redir_out; /* For each command, only one input can be used */
+    int tmp_input = dup(STDIN_FILENO),   /* tmp_input = stdin */
+        tmp_output = dup(STDOUT_FILENO), /* tmp_output = stdout */
+        input, output;
+    int pipefd[2];
 
     /* Skip leftover ';' at the beginning of the command */
     while (strcmp(";", token) == 0) {
@@ -81,6 +86,54 @@ void execute(sh_parser_t parser) {
     }
 
     command = reconstruct_command(parser);
+
+    token = next_token(parser);
+    while (token && strcmp(token, "|") && strcmp(token, ";")) {
+        if (strcmp("<", token) == 0) {
+            if (redir_in == 0) {
+                redir_in = 1;
+                token = next_token(parser);
+
+                input = open(token, O_RDONLY);
+                dup2(input, STDIN_FILENO);
+            } else {
+                dup2(tmp_input, STDIN_FILENO);
+                free(command);
+                return;
+            }
+        } else if (strcmp(">", token) == 0) {
+            if (redir_out == 0) {
+                redir_out = 1;
+                token = next_token(parser);
+
+                output = open(token, O_WRONLY | O_TRUNC | O_CREAT);
+                dup2(output, STDOUT_FILENO);
+            } else {
+                dup2(tmp_output, STDOUT_FILENO);
+                free(command);
+                return;
+            }
+        } else if (strcmp(">>", token) == 0) {
+            if (redir_out == 0) {
+                redir_out = 1;
+                token = next_token(parser);
+
+                output = open(token, O_APPEND | O_CREAT);
+                dup2(output, STDOUT_FILENO);
+            } else {
+                dup2(tmp_output, STDOUT_FILENO);
+                free(command);
+                return;
+            }
+        } else {
+            free(command);
+            dup2(tmp_output, STDOUT_FILENO);
+            dup2(tmp_input, STDIN_FILENO);
+
+            return;
+        }
+        token = next_token(parser);
+    }
 
     cpid = fork();
     if (cpid < 0) {
