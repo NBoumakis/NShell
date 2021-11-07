@@ -16,6 +16,8 @@ struct command_sequence {
     struct command_list_cell
         *command_list_head; /* A pointer to the head of the simple command list */
     struct command_list_cell
+        *command_list_tail; /* A pointer to the tail of the simple command list */
+    struct command_list_cell
         *current_command; /* A pointer to the current simple command */
     int command_count;    /* The total number of simple commands */
 };
@@ -36,8 +38,30 @@ struct command_simple {
     int pipeOut; /* Boolean, whether to write the output to the next pipe */
 };
 
-static void insert_after_simple_command_list(struct command_list_cell **,
-                                             command_simple_t);
+static void insert_after_simple_command_list(struct command_list_cell **head,
+                                             struct command_list_cell **tail,
+                                             command_simple_t simple_command) {
+    struct command_list_cell *new_cell = malloc(sizeof(struct command_list_cell));
+
+    new_cell->command = simple_command;
+
+    if (*head == NULL) {
+        new_cell->next = NULL;
+        new_cell->prev = NULL;
+
+        *head = new_cell;
+        *tail = new_cell;
+
+        return;
+    }
+
+    new_cell->next = (*tail)->next;
+    new_cell->prev = *tail;
+    (*tail)->next = new_cell;
+    *tail = new_cell;
+
+    return;
+}
 
 char **get_command_and_arguments(command_simple_t simple_command) {
     return simple_command->command_and_args;
@@ -98,6 +122,8 @@ command_sequence_t parse(char *input, size_t input_size,
         command_seq = malloc(sizeof(command_sequence_t));
     }
 
+    command_seq->command_list_head = NULL;
+    command_seq->command_list_tail = NULL;
     command_seq->command_count = count_simple_commands(input, input_size);
 
     for (i = 0; i < command_seq->command_count; i++) {
@@ -149,6 +175,7 @@ command_sequence_t parse(char *input, size_t input_size,
         }
 
         insert_after_simple_command_list(&(command_seq->command_list_head),
+                                         &(command_seq->command_list_tail),
                                          tmp_simple);
     }
 
