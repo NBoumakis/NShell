@@ -18,132 +18,52 @@ void prompt_string() {
     printf("%s%s%s", user, "@cs345sh/", dir);
 }
 
-static int is_separator(char *input) {
-    char *separators[SEP_NUMBER] = {"|", ";", "<", ">", ">>"};
-    int i;
-
-    for (i = 0; i < SEP_NUMBER; i++) {
-        if (strcmp(input, separators[i]) == 0) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-/* Reconstructs a command using the tokens of the parser starting from the one set as
- * the current token to the one before the first separator. It mallocs a char** array
- * used to hold the command tokens, in the order they were given. This array must be
- * freed by the user. After execution, the current token of the parser will be the
- * the last non-separator token before the first separator after the token in which
- * the parser was given in this function */
-static char **reconstruct_command(sh_parser_t parser) {
-    char **command;
-    char *token;
-    int arg_count = 0, i;
-
-    token = current_token(parser);
-
-    while (token && !is_separator(token)) {
-        arg_count += 1;
-        token = next_token(parser);
-    }
-
-    command = malloc(arg_count * sizeof(char *));
-
-    for (i = 0; i < arg_count; i++) {
-        previous_token(parser);
-    }
-
-    command[0] = current_token(parser);
-
-    for (i = 1; i < arg_count; i++) {
-        command[i] = next_token(parser);
-    }
-
-    return command;
-}
-
-void execute(sh_parser_t parser) {
-    char *token = current_token(parser);
-    char **command;
+void execute(command_sequence_t command_seq) {
+    command_simple_t command;
     pid_t cpid;
-    int redir_in = 0, redir_out; /* For each command, only one input can be used */
     int tmp_input = dup(STDIN_FILENO),   /* tmp_input = stdin */
         tmp_output = dup(STDOUT_FILENO), /* tmp_output = stdout */
         input, output;
     int pipefd[2];
 
-    /* Skip leftover ';' at the beginning of the command */
-    while (strcmp(";", token) == 0) {
-        token = next_token(parser);
-    }
+    command = get_current_simple_command(command_seq);
 
-    if (is_separator(current_token(parser))) {
-        printf("Invalid input: Only command allowed after \';\'");
+    while (command) {
+        if (get_input_filename(command)) {
+            input = open(get_input_filename(command), O_RDONLY);
+            dup2(input, STDIN_FILENO);
+            close(input);
+        }
 
-        return;
-    }
-
-    command = reconstruct_command(parser);
-
-    token = next_token(parser);
-    while (token && strcmp(token, "|") && strcmp(token, ";")) {
-        if (strcmp("<", token) == 0) {
-            if (redir_in == 0) {
-                redir_in = 1;
-                token = next_token(parser);
-
-                input = open(token, O_RDONLY);
-                dup2(input, STDIN_FILENO);
+        if (get_output_filename(command)) {
+            if (get_output_type(command) == OVERWRITE) {
+                output =
+                    open(get_output_filename(command), O_WRONLY | O_TRUNC | O_CREAT);
             } else {
-                dup2(tmp_input, STDIN_FILENO);
-                free(command);
-                return;
+                output = open(get_output_filename(command), O_APPEND | O_CREAT);
             }
-        } else if (strcmp(">", token) == 0) {
-            if (redir_out == 0) {
-                redir_out = 1;
-                token = next_token(parser);
 
-                output = open(token, O_WRONLY | O_TRUNC | O_CREAT);
-                dup2(output, STDOUT_FILENO);
-            } else {
-                dup2(tmp_output, STDOUT_FILENO);
-                free(command);
-                return;
-            }
-        } else if (strcmp(">>", token) == 0) {
-            if (redir_out == 0) {
-                redir_out = 1;
-                token = next_token(parser);
+            dup2(output, STDOUT_FILENO);
+            close(output);
+        }
 
-                output = open(token, O_APPEND | O_CREAT);
-                dup2(output, STDOUT_FILENO);
-            } else {
-                dup2(tmp_output, STDOUT_FILENO);
-                free(command);
-                return;
-            }
-        } else {
-            free(command);
+        cpid = fork();
+        if (cpid < 0) {
+            exit(-1);
+        }
+
+        if (cpid > 0) {
+            wait(NULL);
+
             dup2(tmp_output, STDOUT_FILENO);
             dup2(tmp_input, STDIN_FILENO);
+            close(tmp_input);
+            close(tmp_output);
 
-            return;
+            exit(EXIT_SUCCESS);
+        } else {
+            execvp(get_command_and_arguments(command)[0],
+                   get_command_and_arguments(command));
         }
-        token = next_token(parser);
-    }
-
-    cpid = fork();
-    if (cpid < 0) {
-        exit(-1);
-    }
-
-    if (cpid > 0) {
-        wait(NULL);
-        exit(EXIT_SUCCESS);
-    } else {
-        execvp(command[0], command);
     }
 }

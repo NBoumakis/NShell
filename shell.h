@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "parser1.h"
 
 #ifndef SHELL_H
 #define SHELL_H
@@ -6,5 +6,5 @@
 /* Prints the prompt */
 void prompt_string();
 
-void execute(sh_parser_t);
+void execute(command_sequence_t);
 #endif
