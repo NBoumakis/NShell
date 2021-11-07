@@ -1,5 +1,5 @@
 #include "parser1.h"
-#include "parcerUtilities.h"
+#include "parserUtilities.h"
 #include <ctype.h>
 #include <string.h>
 
@@ -91,6 +91,7 @@ command_sequence_t parse(char *input, size_t input_size,
     command_simple_t tmp_simple;
     char **cmd_args;
     size_t cmd_start_index, cmd_end_index, arg_end_index;
+    int prevPipeOut = 0;
 
     if (command_seq == NULL) {
         command_seq = malloc(sizeof(command_sequence_t));
@@ -129,10 +130,15 @@ command_sequence_t parse(char *input, size_t input_size,
         if (check_pipeOut(input, cmd_start_index, cmd_end_index)) {
             if (!tmp_simple->output_redirection) {
                 tmp_simple->pipeOut = 1;
+                prevPipeOut = 1;
+            } else {
+                prevPipeOut = 0;
             }
+        } else {
+            prevPipeOut = 0;
         }
 
-        if (check_pipeIn(input, cmd_start_index, cmd_end_index)) {
+        if (prevPipeOut) {
             if (!tmp_simple->input_redirection) {
                 tmp_simple->pipeIn = 1;
             }
