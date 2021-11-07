@@ -1,4 +1,4 @@
-#include "parser1.h"
+#include "parser.h"
 #include <stddef.h>
 
 int count_simple_commands(char *, size_t);
