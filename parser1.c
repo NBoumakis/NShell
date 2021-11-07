@@ -154,7 +154,6 @@ command_sequence_t parse(char *input, size_t input_size,
     return command_seq;
 }
 
-/* Clears the parser and its fields allowing it to be reused */
 void clear_command_sequence(command_sequence_t command_seq) {
     struct command_list_cell *tmp = command_seq->command_list_head, *next;
     int i;
@@ -181,5 +180,7 @@ void clear_command_sequence(command_sequence_t command_seq) {
     command_seq->command_count = 0;
 }
 
-/* Clears and deallocates the parser */
-void free_command_sequence(command_sequence_t);
+void free_command_sequence(command_sequence_t command_seq) {
+    clear_command_sequence(command_seq);
+    free(command_seq);
+}
