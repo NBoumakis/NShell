@@ -119,7 +119,7 @@ command_sequence_t parse(char *input, size_t input_size,
     int prevPipeOut = 0;
 
     if (command_seq == NULL) {
-        command_seq = malloc(sizeof(command_sequence_t));
+        command_seq = malloc(sizeof(struct command_sequence));
     }
 
     command_seq->command_list_head = NULL;
@@ -127,7 +127,7 @@ command_sequence_t parse(char *input, size_t input_size,
     command_seq->command_count = count_simple_commands(input, input_size);
 
     for (i = 0; i < command_seq->command_count; i++) {
-        tmp_simple = malloc(sizeof(command_simple_t));
+        tmp_simple = malloc(sizeof(struct command_simple));
         tmp_simple->input_redirection = 0;
         tmp_simple->input_filename = NULL;
         tmp_simple->output_redirection = 0;
@@ -178,6 +178,8 @@ command_sequence_t parse(char *input, size_t input_size,
                                          &(command_seq->command_list_tail),
                                          tmp_simple);
     }
+
+    command_seq->current_command = command_seq->command_list_head;
 
     return command_seq;
 }
