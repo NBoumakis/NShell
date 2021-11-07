@@ -23,6 +23,7 @@ struct command_sequence {
 struct command_simple {
     char **command_and_args; /* A array of strings containing the command and its
                                 arguments */
+    int command_args_count;
 
     int input_redirection; /* Boolean, whether redirection is used */
     char *input_filename;  /* The filename for the input */
@@ -112,6 +113,8 @@ command_sequence_t parse(char *input, size_t input_size,
 
         tmp_simple->command_and_args =
             extract_cmd_args(input, cmd_start_index, arg_end_index);
+        tmp_simple->command_args_count =
+            count_arguments(input, cmd_start_index, arg_end_index);
 
         if (check_input_redirection(input, arg_end_index + 1, cmd_end_index)) {
             tmp_simple->input_redirection = 1;
@@ -152,7 +155,31 @@ command_sequence_t parse(char *input, size_t input_size,
 }
 
 /* Clears the parser and its fields allowing it to be reused */
-void clear_command_sequence(command_sequence_t);
+void clear_command_sequence(command_sequence_t command_seq) {
+    struct command_list_cell *tmp = command_seq->command_list_head, *next;
+    int i;
+
+    while (tmp != NULL) {
+        next = tmp->next;
+
+        for (i = 0; i < tmp->command->command_args_count; i++) {
+            free(tmp->command->command_and_args[i]);
+        }
+        free(tmp->command->command_and_args);
+
+        free(tmp->command->input_filename);
+        free(tmp->command->output_filename);
+
+        free(tmp->command);
+        free(tmp);
+
+        tmp = next;
+    }
+
+    command_seq->current_command = NULL;
+    command_seq->command_list_head = NULL;
+    command_seq->command_count = 0;
+}
 
 /* Clears and deallocates the parser */
 void free_command_sequence(command_sequence_t);
