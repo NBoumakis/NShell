@@ -1,4 +1,5 @@
 #include "parser1.h"
+#include "parcerUtilities.h"
 #include <ctype.h>
 #include <string.h>
 
@@ -34,6 +35,9 @@ struct command_simple {
     int pipeOut; /* Boolean, whether to write the output to the next pipe */
 };
 
+static void insert_after_simple_command_list(struct command_list_cell **,
+                                             command_simple_t);
+
 char **get_command_and_arguments(command_simple_t simple_command) {
     return simple_command->command_and_args;
 }
@@ -67,15 +71,82 @@ int get_pipe_output(command_simple_t simple_command) {
 command_simple_t get_next_simple_command(command_sequence_t command_seq) {
     command_seq->current_command = command_seq->current_command->next;
 
-    return command_seq->current_command;
+    return command_seq->current_command->command;
 }
 
 command_simple_t get_previous_simple_command(command_sequence_t command_seq) {
     command_seq->current_command = command_seq->current_command->prev;
 
-    return command_seq->current_command;
+    return command_seq->current_command->command;
 }
 
 command_simple_t get_current_simple_command(command_sequence_t command_seq) {
-    return command_seq->current_command;
+    return command_seq->current_command->command;
 }
+
+/* Parses the read command or series of commands */
+command_sequence_t parse(char *input, size_t input_size,
+                         command_sequence_t command_seq) {
+    int i, input_index = 0, arg_count = 0;
+    command_simple_t tmp_simple;
+    char **cmd_args;
+    size_t cmd_start_index, cmd_end_index, arg_end_index;
+
+    if (command_seq == NULL) {
+        command_seq = malloc(sizeof(command_sequence_t));
+    }
+
+    command_seq->command_count = count_simple_commands(input, input_size);
+
+    for (i = 0; i < command_seq->command_count; i++) {
+        tmp_simple = malloc(sizeof(command_simple_t));
+        tmp_simple->input_redirection = 0;
+        tmp_simple->input_filename = NULL;
+        tmp_simple->output_redirection = 0;
+        tmp_simple->output_filename = NULL;
+
+        cmd_start_index = find_command_beginning(input, cmd_start_index, input_size);
+        cmd_end_index = find_command_end(input, cmd_start_index, input_size);
+        arg_end_index = find_arg_end(input, cmd_start_index, cmd_end_index);
+
+        tmp_simple->command_and_args =
+            extract_cmd_args(input, cmd_start_index, arg_end_index);
+
+        if (check_input_redirection(input, arg_end_index + 1, cmd_end_index)) {
+            tmp_simple->input_redirection = 1;
+            tmp_simple->input_filename = get_filename_input_redirection(
+                input, arg_end_index + 1, cmd_end_index);
+        }
+
+        if (check_output_redirection(input, arg_end_index + 1, cmd_end_index)) {
+            tmp_simple->output_redirection = 1;
+            tmp_simple->output_type =
+                get_output_redir_type(input, arg_end_index + 1, cmd_end_index);
+            tmp_simple->output_filename = get_filename_output_redirection(
+                input, arg_end_index + 1, cmd_end_index);
+        }
+
+        if (check_pipeOut(input, cmd_start_index, cmd_end_index)) {
+            if (!tmp_simple->output_redirection) {
+                tmp_simple->pipeOut = 1;
+            }
+        }
+
+        if (check_pipeIn(input, cmd_start_index, cmd_end_index)) {
+            if (!tmp_simple->input_redirection) {
+                tmp_simple->pipeIn = 1;
+            }
+        }
+
+        insert_after_simple_command_list(&(command_seq->command_list_head),
+                                         tmp_simple);
+    }
+
+    return command_seq;
+}
+
+/* Clears the parser and its fields allowing it to be reused */
+void clear_command_sequence(command_sequence_t);
+
+/* Clears and deallocates the parser */
+void free_command_sequence(command_sequence_t);
