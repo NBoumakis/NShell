@@ -1,11 +1,11 @@
-#include "parcerUtilities.h"
+#include "parserUtilities.h"
 #include <ctype.h>
 #include <string.h>
 
 static int cmd_valid_char(char c) { return isalnum(c) || c == '<' || c == '>'; }
 static int is_separator(char c) { return (c == ';' || c == '|'); }
 
-static int count_arguments(char *input, size_t arg_start, size_t arg_end) {
+int count_arguments(char *input, size_t arg_start, size_t arg_end) {
     size_t i;
     int arg_count = 0;
     int in_arg = 0;

@@ -3,6 +3,8 @@
 
 int count_simple_commands(char *, size_t);
 
+int count_arguments(char *, size_t, size_t);
+
 size_t find_command_beginning(char *, size_t, size_t);
 
 size_t find_command_end(char *, size_t, size_t);
