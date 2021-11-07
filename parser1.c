@@ -111,10 +111,11 @@ command_sequence_t parse(char *input, size_t input_size,
         cmd_end_index = find_command_end(input, cmd_start_index, input_size);
         arg_end_index = find_arg_end(input, cmd_start_index, cmd_end_index);
 
-        tmp_simple->command_and_args =
-            extract_cmd_args(input, cmd_start_index, arg_end_index);
         tmp_simple->command_args_count =
             count_arguments(input, cmd_start_index, arg_end_index);
+
+        tmp_simple->command_and_args = extract_cmd_args(
+            tmp_simple->command_args_count, input, cmd_start_index, arg_end_index);
 
         if (check_input_redirection(input, arg_end_index + 1, cmd_end_index)) {
             tmp_simple->input_redirection = 1;

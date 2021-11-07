@@ -99,7 +99,6 @@ size_t find_arg_end(char *input, size_t from, size_t to) {
 
 char **extract_cmd_args(int arg_count, char *input, size_t arg_start,
                         size_t arg_end) {
-    size_t arg_count = count_arguments(input, arg_start, arg_end);
     char **cmd_args = malloc(arg_count * (sizeof(char *)));
     size_t arg_size, i;
 
