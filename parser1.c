@@ -63,3 +63,19 @@ int get_pipe_input(command_simple_t simple_command) {
 int get_pipe_output(command_simple_t simple_command) {
     return simple_command->pipeOut;
 }
+
+command_simple_t get_next_simple_command(command_sequence_t command_seq) {
+    command_seq->current_command = command_seq->current_command->next;
+
+    return command_seq->current_command;
+}
+
+command_simple_t get_previous_simple_command(command_sequence_t command_seq) {
+    command_seq->current_command = command_seq->current_command->prev;
+
+    return command_seq->current_command;
+}
+
+command_simple_t get_current_simple_command(command_sequence_t command_seq) {
+    return command_seq->current_command;
+}
