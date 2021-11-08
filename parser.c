@@ -158,6 +158,12 @@ command_sequence_t parse(char *input, size_t input_size,
                 input, arg_end_index + 1, cmd_end_index);
         }
 
+        if (prevPipeOut) {
+            if (!tmp_simple->input_redirection) {
+                tmp_simple->pipeIn = 1;
+            }
+        }
+
         if (check_pipeOut(input, cmd_start_index, cmd_end_index)) {
             if (!tmp_simple->output_redirection) {
                 tmp_simple->pipeOut = 1;
@@ -167,12 +173,6 @@ command_sequence_t parse(char *input, size_t input_size,
             }
         } else {
             prevPipeOut = 0;
-        }
-
-        if (prevPipeOut) {
-            if (!tmp_simple->input_redirection) {
-                tmp_simple->pipeIn = 1;
-            }
         }
 
         insert_after_simple_command_list(&(command_seq->command_list_head),

@@ -66,7 +66,7 @@ size_t find_command_beginning(char *input, size_t from, size_t to) {
 
 size_t find_command_end(char *input, size_t from, size_t to) {
     for (; from <= to; from++) {
-        if (is_separator(input[from])) {
+        if (is_separator(input[from]) || from == to) {
             break;
         }
     }
@@ -82,12 +82,13 @@ size_t find_command_end(char *input, size_t from, size_t to) {
 
 size_t find_arg_end(char *input, size_t from, size_t to) {
     for (; from <= to; from++) {
-        if (is_separator(input[from]) || input[from] == '<' || input[from] == '>') {
+        if (is_separator(input[from]) || input[from] == '<' || input[from] == '>' ||
+            from == to) {
             break;
         }
     }
 
-    for (to = from - 1; to > 0; to--) {
+    for (to = from; to > 0; to--) {
         /* I already know that there are no '<' or '>' before from */
         if (cmd_valid_char(input[to])) {
             return to;
