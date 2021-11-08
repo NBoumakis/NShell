@@ -23,7 +23,7 @@ void execute(command_sequence_t command_seq) {
     pid_t cpid;
     int tmp_input = dup(STDIN_FILENO),   /* tmp_input = stdin */
         tmp_output = dup(STDOUT_FILENO), /* tmp_output = stdout */
-        input, output;
+        input, output, previous_pipe_out;
     int pipefd[2];
 
     command = get_current_simple_command(command_seq);
@@ -43,15 +43,26 @@ void execute(command_sequence_t command_seq) {
             if (get_output_filename(command)) {
                 if (get_output_type(command) == OVERWRITE) {
                     output = open(get_output_filename(command),
-                                  O_WRONLY | O_TRUNC | O_CREAT);
+                                  O_WRONLY | O_TRUNC | O_CREAT,
+                                  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
                 } else {
-                    output = open(get_output_filename(command), O_APPEND | O_CREAT);
+                    output = open(get_output_filename(command), O_APPEND | O_CREAT,
+                                  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
                 }
 
                 dup2(output, STDOUT_FILENO);
                 close(output);
             }
+            /*
+                        if (get_pipe_input(command)) {
+                            dup2(pipefd[0], STDIN_FILENO);
+                        }
 
+                        if (get_pipe_output(command)) {
+                            pipe(pipefd);
+                            dup2(pipefd[1], STDOUT_FILENO);
+                        }
+            */
             cpid = fork();
             if (cpid < 0) {
                 exit(-1);
