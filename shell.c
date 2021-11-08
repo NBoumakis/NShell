@@ -46,23 +46,26 @@ void execute(command_sequence_t command_seq) {
                                   O_WRONLY | O_TRUNC | O_CREAT,
                                   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
                 } else {
-                    output = open(get_output_filename(command), O_APPEND | O_CREAT,
+                    output = open(get_output_filename(command),
+                                  O_WRONLY | O_APPEND | O_CREAT,
                                   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
                 }
 
                 dup2(output, STDOUT_FILENO);
                 close(output);
             }
-            /*
-                        if (get_pipe_input(command)) {
-                            dup2(pipefd[0], STDIN_FILENO);
-                        }
 
-                        if (get_pipe_output(command)) {
-                            pipe(pipefd);
-                            dup2(pipefd[1], STDOUT_FILENO);
-                        }
-            */
+            if (get_pipe_input(command)) {
+                dup2(pipefd[0], STDIN_FILENO);
+                close(pipefd[0]);
+            }
+
+            if (get_pipe_output(command)) {
+                pipe(pipefd);
+                dup2(pipefd[1], STDOUT_FILENO);
+                close(pipefd[1]);
+            }
+
             cpid = fork();
             if (cpid < 0) {
                 exit(-1);

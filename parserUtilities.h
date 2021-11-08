@@ -11,6 +11,8 @@ size_t find_command_end(char *, size_t, size_t);
 
 size_t find_arg_end(char *, size_t, size_t);
 
+size_t find_separator(char *, size_t, size_t);
+
 char **extract_cmd_args(int, char *, size_t, size_t);
 
 int check_input_redirection(char *, size_t, size_t);

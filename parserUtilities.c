@@ -98,6 +98,16 @@ size_t find_arg_end(char *input, size_t from, size_t to) {
     return -1;
 }
 
+size_t find_separator(char *input, size_t from, size_t to) {
+    for (; from <= to; from++) {
+        if (is_separator(input[from]) || from == to) {
+            return from;
+        }
+    }
+
+    return -1;
+}
+
 char **extract_cmd_args(int arg_count, char *input, size_t arg_start,
                         size_t arg_end) {
     char **cmd_args = malloc((arg_count + 1) * (sizeof(char *)));

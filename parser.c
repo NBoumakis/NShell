@@ -123,7 +123,7 @@ command_sequence_t parse(char *input, size_t input_size,
                          command_sequence_t command_seq) {
     int i;
     command_simple_t tmp_simple;
-    size_t cmd_start_index = 0, cmd_end_index, arg_end_index;
+    size_t cmd_start_index = 0, cmd_end_index, arg_end_index, separator_index;
     int prevPipeOut = 0;
 
     if (command_seq == NULL) {
@@ -140,11 +140,14 @@ command_sequence_t parse(char *input, size_t input_size,
         tmp_simple->input_filename = NULL;
         tmp_simple->output_redirection = 0;
         tmp_simple->output_filename = NULL;
+        tmp_simple->pipeIn = 0;
+        tmp_simple->pipeOut = 0;
 
         cmd_start_index =
             find_command_beginning(input, cmd_start_index, input_size - 1);
         cmd_end_index = find_command_end(input, cmd_start_index, input_size - 1);
         arg_end_index = find_arg_end(input, cmd_start_index, cmd_end_index);
+        separator_index = find_separator(input, cmd_start_index, input_size - 1);
 
         tmp_simple->command_args_count =
             count_arguments(input, cmd_start_index, arg_end_index);
@@ -167,18 +170,12 @@ command_sequence_t parse(char *input, size_t input_size,
         }
 
         if (prevPipeOut) {
-            if (!tmp_simple->input_redirection) {
-                tmp_simple->pipeIn = 1;
-            }
+            tmp_simple->pipeIn = 1;
         }
 
-        if (check_pipeOut(input, cmd_start_index, cmd_end_index)) {
-            if (!tmp_simple->output_redirection) {
-                tmp_simple->pipeOut = 1;
-                prevPipeOut = 1;
-            } else {
-                prevPipeOut = 0;
-            }
+        if (check_pipeOut(input, cmd_start_index, separator_index)) {
+            tmp_simple->pipeOut = 1;
+            prevPipeOut = 1;
         } else {
             prevPipeOut = 0;
         }
