@@ -1,0 +1,16 @@
+This is a shell created by Nikos Boumakis at CSD.
+Creation date: approx. 8/11/2021
+
+It consists of 4 modules.
+    Module "parser" (files "parser.h" and "parser.c") implements a parsing system for the shell.
+    Module "parserUtilities" (files "parserUtilities.h" and "parserUtilities.c") implements several helper functions for the parser.
+    Module "shell" (files "shell.h" and "shell.c") implements the actual shell, providing functions for prompting and command execution.
+    Module "main" (file "main.c") implements the main working function of the shell.
+
+Each function deliberately has a long name, so as to allow it to be descriptive of its results
+
+Limitations:
+    Currently no error checking is done, due to the deadline of the assignment.
+    Also, there is support for pipelining but it is disabled due to it causing the shell to crash (gracefully). You could try uncommenting the relevant section in shell.c:execute().
+    
+    All limmitations will be fixed eventually.
