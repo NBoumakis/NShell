@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 
-static int cmd_valid_char(char c) { return isalnum(c) || c == '<' || c == '>'; }
+static int cmd_valid_char(char c) { return !isspace(c) && c != ';' && c != '|'; }
 static int is_separator(char c) { return (c == ';' || c == '|'); }
 
 int count_arguments(char *input, size_t arg_start, size_t arg_end) {
@@ -109,7 +109,8 @@ char **extract_cmd_args(int arg_count, char *input, size_t arg_start,
             arg_start++;
         }
 
-        while (!isspace(input[arg_start + arg_size])) {
+        while (!isspace(input[arg_start + arg_size]) &&
+               arg_start + arg_size <= arg_end) {
             arg_size++;
         }
 
