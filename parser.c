@@ -96,17 +96,26 @@ int get_pipe_output(command_simple_t simple_command) {
 command_simple_t get_next_simple_command(command_sequence_t command_seq) {
     command_seq->current_command = command_seq->current_command->next;
 
-    return command_seq->current_command->command;
+    if (command_seq->current_command)
+        return command_seq->current_command->command;
+    else
+        return NULL;
 }
 
 command_simple_t get_previous_simple_command(command_sequence_t command_seq) {
     command_seq->current_command = command_seq->current_command->prev;
 
-    return command_seq->current_command->command;
+    if (command_seq->current_command)
+        return command_seq->current_command->command;
+    else
+        return NULL;
 }
 
 command_simple_t get_current_simple_command(command_sequence_t command_seq) {
-    return command_seq->current_command->command;
+    if (command_seq->current_command)
+        return command_seq->current_command->command;
+    else
+        return NULL;
 }
 
 /* Parses the read command or series of commands */
