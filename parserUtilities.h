@@ -1,5 +1,13 @@
+/*
+ * Development: Nikos Boumakis, 4346
+ * Email: csd4346@csd.uoc.gr
+ */
+
 #include "parser.h"
 #include <stddef.h>
+
+#ifndef PARSER_UTILITIES_H
+#define PARSER_UTILITIES_H
 
 int count_simple_commands(char *, size_t);
 
@@ -26,3 +34,5 @@ char *get_filename_output_redirection(char *, size_t, size_t);
 enum OUTPUT_TYPE get_output_redir_type(char *, size_t, size_t);
 
 int check_pipeOut(char *, size_t, size_t);
+
+#endif

@@ -1,3 +1,8 @@
+/*
+ * Development: Nikos Boumakis, 4346
+ * Email: csd4346@csd.uoc.gr
+ */
+
 #include "parser.h"
 
 #ifndef SHELL_H

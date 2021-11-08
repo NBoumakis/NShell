@@ -1,3 +1,8 @@
+/*
+ * Development: Nikos Boumakis, 4346
+ * Email: csd4346@csd.uoc.gr
+ */
+
 #include "parserUtilities.h"
 #include <ctype.h>
 #include <string.h>

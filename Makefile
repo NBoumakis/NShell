@@ -1,3 +1,6 @@
+# Development: Nikos Boumakis, 4346
+# Email: csd4346@csd.uoc.gr
+
 
 CC = gcc
 CFLAGS = -Wall -std=gnu11 -pedantic -g
