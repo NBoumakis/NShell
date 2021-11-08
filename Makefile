@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -Wall -ansi -pedantic -g
+CFLAGS = -Wall -std=gnu11 -pedantic -g
 
 all: shell.out
 
