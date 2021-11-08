@@ -100,7 +100,7 @@ size_t find_arg_end(char *input, size_t from, size_t to) {
 
 char **extract_cmd_args(int arg_count, char *input, size_t arg_start,
                         size_t arg_end) {
-    char **cmd_args = malloc(arg_count * (sizeof(char *)));
+    char **cmd_args = malloc((arg_count + 1) * (sizeof(char *)));
     size_t arg_size, i;
 
     for (i = 0; i < arg_count; i++) {
@@ -122,6 +122,7 @@ char **extract_cmd_args(int arg_count, char *input, size_t arg_start,
         arg_start += arg_size + 1;
     }
 
+    cmd_args[i] = NULL;
     return cmd_args;
 }
 
