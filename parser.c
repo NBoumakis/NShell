@@ -112,9 +112,8 @@ command_simple_t get_current_simple_command(command_sequence_t command_seq) {
 /* Parses the read command or series of commands */
 command_sequence_t parse(char *input, size_t input_size,
                          command_sequence_t command_seq) {
-    int i, input_index = 0, arg_count = 0;
+    int i;
     command_simple_t tmp_simple;
-    char **cmd_args;
     size_t cmd_start_index = 0, cmd_end_index, arg_end_index;
     int prevPipeOut = 0;
 
