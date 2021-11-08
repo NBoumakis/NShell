@@ -90,7 +90,7 @@ size_t find_arg_end(char *input, size_t from, size_t to) {
 
     for (to = from; to > 0; to--) {
         /* I already know that there are no '<' or '>' before from */
-        if (cmd_valid_char(input[to])) {
+        if (cmd_valid_char(input[to]) && input[to] != '<' && input[to] != '>') {
             return to;
         }
     }
