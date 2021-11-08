@@ -15,7 +15,7 @@ void prompt_string() {
 
     getcwd(dir, DIR_MAX_LENGTH);
 
-    printf("%s%s%s", user, "@cs345sh/", dir);
+    printf("%s%s%s$ ", user, "@cs345sh/", dir);
 }
 
 void execute(command_sequence_t command_seq) {
@@ -64,12 +64,12 @@ void execute(command_sequence_t command_seq) {
                 dup2(tmp_input, STDIN_FILENO);
                 close(tmp_input);
                 close(tmp_output);
-
-                exit(EXIT_SUCCESS);
             } else {
                 execvp(get_command_and_arguments(command)[0],
                        get_command_and_arguments(command));
             }
         }
+
+        command = get_next_simple_command(command_seq);
     }
 }
