@@ -28,7 +28,7 @@ void execute(command_sequence_t command_seq) {
     pid_t cpid;
     int tmp_input = dup(STDIN_FILENO),   /* tmp_input = stdin */
         tmp_output = dup(STDOUT_FILENO), /* tmp_output = stdout */
-        input, output, previous_pipe_out;
+        input, output;
     int pipefd[2];
 
     command = get_current_simple_command(command_seq);
@@ -59,7 +59,7 @@ void execute(command_sequence_t command_seq) {
                 dup2(output, STDOUT_FILENO);
                 close(output);
             }
-
+            /*
             if (get_pipe_input(command)) {
                 dup2(pipefd[0], STDIN_FILENO);
                 close(pipefd[0]);
@@ -69,7 +69,7 @@ void execute(command_sequence_t command_seq) {
                 pipe(pipefd);
                 dup2(pipefd[1], STDOUT_FILENO);
                 close(pipefd[1]);
-            }
+            }*/
 
             cpid = fork();
             if (cpid < 0) {
